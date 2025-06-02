@@ -5,10 +5,12 @@ import datetime
 
 def get_google_trends():
     pytrends = TrendReq(hl='en-US', tz=360)
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    pytrends.build_payload(kw_list=[""])
-    trending = pytrends.trending_searches(pn='india')
-    return trending[0].tolist()[:10]
+    try:
+        trending = pytrends.today_searches(pn='IN')  # Use 'IN' for India, 'US' for United States, etc.
+        return trending.tolist()[:10]
+    except Exception as e:
+        print(f"[Google Trends Error] {e}")
+        return []
 
 def get_tiktok_trends():
     url = 'https://www.tiktok.com/trending'
