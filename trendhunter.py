@@ -3,10 +3,12 @@ from bs4 import BeautifulSoup
 from pytrends.request import TrendReq
 import datetime
 
+from pytrends.request import TrendReq
+
 def get_google_trends():
-    pytrends = TrendReq(hl='en-US', tz=360)
     try:
-        trending = pytrends.today_searches(pn='IN')  # Use 'IN' for India, 'US' for United States, etc.
+        pytrends = TrendReq(hl='en-US', tz=360)
+        trending = pytrends.today_searches(pn='IN')  # 'IN' for India
         return trending.tolist()[:10]
     except Exception as e:
         print(f"[Google Trends Error] {e}")
