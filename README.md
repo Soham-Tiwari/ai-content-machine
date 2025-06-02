@@ -1,2 +1,0 @@
-# ai-content-machine
-hi
