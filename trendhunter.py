@@ -7,7 +7,7 @@ def get_google_trends():
     pytrends = TrendReq(hl='en-US', tz=360)
     today = datetime.date.today().strftime("%Y-%m-%d")
     pytrends.build_payload(kw_list=[""])
-    trending = pytrends.trending_searches(pn='united_states')
+    trending = pytrends.trending_searches(pn='india')
     return trending[0].tolist()[:10]
 
 def get_tiktok_trends():
