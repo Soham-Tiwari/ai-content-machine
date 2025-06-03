@@ -49,3 +49,40 @@ def run_trendhunter():
 
 if __name__ == "__main__":
     run_trendhunter()
+
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+# Fetch DB URL from environment variable
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+# Function to connect and ensure table exists
+def init_db():
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS trends (
+            id SERIAL PRIMARY KEY,
+            keyword TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Function to insert a trend
+def insert_trend(keyword):
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO trends (keyword) VALUES (%s)", (keyword,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Example usage:
+if __name__ == "__main__":
+    init_db()
+    insert_trend("AI Tools India")
+
