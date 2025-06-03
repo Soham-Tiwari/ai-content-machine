@@ -81,8 +81,10 @@ def insert_trend(keyword):
     cur.close()
     conn.close()
 
-# Example usage:
 if __name__ == "__main__":
-    init_db()
-    insert_trend("AI Tools India")
+    init_db()  # Make sure table exists
 
+    # Loop over scraped trends and save to DB
+    for trend in trends:
+        insert_trend(trend)
+        print(f"Inserted: {trend}")
