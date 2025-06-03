@@ -1,3 +1,4 @@
 requests
 beautifulsoup4
 pytrends
+psycopg2-binary
