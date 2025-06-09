@@ -50,41 +50,57 @@ def run_trendhunter():
 if __name__ == "__main__":
     run_trendhunter()
 
-import os
+# trendhunter.py
+
+import requests
+from bs4 import BeautifulSoup
 import psycopg2
-from psycopg2.extras import RealDictCursor
+import os
 
-# Fetch DB URL from environment variable
-DATABASE_URL = os.environ.get("DATABASE_URL")
+# Step 1: Scrape trending data
+def fetch_trends():
+    url = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=IN"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "xml")
+    items = soup.find_all("item")
+    trends = []
 
-# Function to connect and ensure table exists
-def init_db():
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS trends (
-            id SERIAL PRIMARY KEY,
-            keyword TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    for item in items:
+        title = item.title.text
+        link = item.link.text
+        trends.append({"title": title, "url": link})
 
-# Function to insert a trend
-def insert_trend(keyword):
-    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-    cur = conn.cursor()
-    cur.execute("INSERT INTO trends (keyword) VALUES (%s)", (keyword,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    return trends
 
+# Step 2: Save to PostgreSQL
+def save_to_postgres(trends):
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS trends (
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        for trend in trends:
+            cur.execute("INSERT INTO trends (title, url) VALUES (%s, %s)", (trend["title"], trend["url"]))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ Trends saved to DB")
+
+    except Exception as e:
+        print("❌ Error saving to DB:", e)
+
+# Main logic
 if __name__ == "__main__":
-    init_db()  # Make sure table exists
-
-    # Loop over scraped trends and save to DB
-    for trend in trends:
-        insert_trend(trend)
-        print(f"Inserted: {trend}")
+    trends = fetch_trends()
+    save_to_postgres(trends)
